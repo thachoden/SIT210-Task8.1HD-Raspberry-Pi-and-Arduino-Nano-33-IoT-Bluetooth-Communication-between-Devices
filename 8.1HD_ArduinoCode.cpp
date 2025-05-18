@@ -22,9 +22,7 @@ void setup() {
 
   customService.addCharacteristic(customCharacteristic);
   BLE.addService(customService);
-
-  customCharacteristic.writeValue("Hello Pi");
-
+  
   BLE.advertise();
   Serial.println("BLE Peripheral device is now advertising...");
 }
@@ -68,5 +66,6 @@ void loop() {
     }
     Serial.print("Disconnected from central: ");
     Serial.println(central.address());
+    Serial.println("BLE Peripheral device is now advertising...");
   }
 }
