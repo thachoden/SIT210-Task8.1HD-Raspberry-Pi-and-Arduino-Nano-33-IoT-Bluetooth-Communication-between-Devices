@@ -12,12 +12,6 @@ GPIO.setup(RED_PIN, GPIO.OUT)
 GPIO.setup(GREEN_PIN, GPIO.OUT)
 GPIO.setup(BLUE_PIN, GPIO.OUT)
 
-class MyDelegate(btle.DefaultDelegate):
-    def __init__(self):
-        btle.DefaultDelegate.__init__(self)
-
-    def handleNotification(self, cHandle, data):
-        print(f"Notification received: {data.decode('utf-8')}")
 def off_all_led():
     GPIO.output(RED_PIN, GPIO.LOW)
     GPIO.output(GREEN_PIN, GPIO.LOW)
@@ -39,8 +33,6 @@ def main():
     target_device = "ec:62:60:81:3c:da"
     # Connect to device
     peripheral = btle.Peripheral(target_device)
-    peripheral.setDelegate(MyDelegate())
-
     # Get service and characteristic UUIDs
     service_uuid = btle.UUID("12345678-1234-5678-1234-56789abcdef0")
     char_uuid = btle.UUID("abcdef01-1234-5678-1234-56789abcdef0")
@@ -54,20 +46,13 @@ def main():
                 # Write data to characteristic
                 message = "Data request"
                 characteristic.write(message.encode('utf-8'), withResponse=True)
-
-                # Wait for notification (if Arduino sends notify)
-                if peripheral.waitForNotifications(0.2):
-                    print("Notification handled.")
-                else:
-                    # If no notification, try reading manually
-                    data = characteristic.read()
-                    distance = int(data.decode('utf-8'))
-                    handle_led(distance)
+                data = characteristic.read()
+                distance = int(data.decode('utf-8'))
+                handle_led(distance)
             except btle.BTLEDisconnectError:
                 print("Device disconnected. Attempting to reconnect...")
                 peripheral.disconnect()  # Disconnect if not already done
                 peripheral = btle.Peripheral(target_device)
-                peripheral.setDelegate(MyDelegate())
                 service = peripheral.getServiceByUUID(service_uuid)
                 characteristic = service.getCharacteristics(char_uuid)[0]
     except KeyboardInterrupt:
